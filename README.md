@@ -1,5 +1,34 @@
 # LBNL Node Health Check (NHC)
 
+## README for UCL fork
+
+### How to build RPMs
+
+Upstream provides RPMs and SRPMs only for releases, which are old by now.
+So we need to be able to build RPMs from the `dev` or our own `ucl` branch.
+The following is convoluted, but works without messing with the `.spec` file.
+
+```
+# Note that the checkout directory must be named `lbnl-nhc-1.5`!
+# If necessary, rename it.
+cd lbnl-nhc-1.5
+# Create the spec file.
+./autogen.sh
+# Create tarball in the right place, because the spec file insists
+# on building from a tarball.
+cd ..
+mkdir -p $HOME/rpmbuild/SOURCES
+tar czvf $HOME/rpmbuild/SOURCES/lbnl-nhc-1.5.tar.gz lbnl-nhc-1.5
+# Now we can build. Package rpm-build must be installed.
+rpmbuild -ba lbnl-nhc.spec
+# Check the created RPMs.
+ls -lR $HOME/rpmbuild/RPMS
+```
+
+Original README continues below.
+
+----
+
 [![Join the chat at https://gitter.im/mej/nhc](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mej/nhc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 TORQUE, Slurm, and other schedulers/resource managers provide for a periodic "node health check" to be performed on each compute node to verify that the node is working properly.  Nodes which are determined to be "unhealthy" can be marked as down or offline so as to prevent jobs from being scheduled or run on them.  This helps increase the reliability and throughput of a cluster by reducing preventable job failures due to misconfiguration, hardware failure, etc.
