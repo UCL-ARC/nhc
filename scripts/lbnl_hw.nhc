@@ -511,6 +511,38 @@ function check_hw_ib() {
     return 1
 }
 
+# Check if Omnipath (OPA) state, phys_state, and rate ($1) all match.
+# (same as IB, but omit the OFED version check)
+function check_hw_opa() {
+    local STATE="ACTIVE"
+    local PHYS_STATE="LinkUp"
+    local RATE="$1"
+    local DEV="$2"
+    local i
+
+    if [[ ${#HW_IB_STATE[*]} -eq 0 ]]; then
+        nhc_hw_hsn_gather_data
+    fi
+
+    for ((i=0; i < ${#HW_IB_STATE[*]}; i++)); do
+        if [[ "${HW_IB_STATE[$i]}" == "$STATE" && "${HW_IB_PHYS_STATE[$i]}" == "$PHYS_STATE" ]]; then
+            if [[ (-z "$DEV" || "${HW_IB_DEV[$i]}" == "$DEV") && (-z "$RATE" || "${HW_IB_RATE[$i]}" == "$RATE") ]]; then
+                return 0
+            fi
+        fi
+    done
+
+    if [[ -n "$DEV" ]]; then
+        DEV=" $DEV"
+    fi
+    if [[ -n "$RATE" ]]; then
+        RATE=" $RATE Gb/sec"
+    fi
+
+    die 1 "$FUNCNAME:  No IB port$DEV is $STATE ($PHYS_STATE$RATE)."
+    return 1
+}
+
 # Check if Myrinet GM device driver and device ($1) are both available.
 function check_hw_gm() {
     local DEV=$1
