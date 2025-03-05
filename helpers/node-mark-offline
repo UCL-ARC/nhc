@@ -58,7 +58,7 @@ elif [[ "$NHC_RM" == "slurm" ]]; then
     SLURM_SCONTROL="${SLURM_SCONTROL:-scontrol}"
     SLURM_SC_OFFLINE_ARGS="${SLURM_SC_OFFLINE_ARGS:-update State=DRAIN}"
 
-    LINE=( $($SLURM_SINFO -o '%t %E' -hn $HOSTNAME) )
+    LINE=( $($SLURM_SINFO -o '%t %E' -hn ${HOSTNAME_S}) )
     STATUS="${LINE[0]}"
     OLD_NOTE_LEADER="${LINE[1]}"
     OLD_NOTE="${LINE[*]:2}"
@@ -75,11 +75,11 @@ elif [[ "$NHC_RM" == "slurm" ]]; then
                     # If the node is already offline, and there is no old note, and
                     # we've not been told to ignore that, do not touch the node.
                     if [[ "$OLD_NOTE_LEADER" == "none" && "$IGNORE_EMPTY_NOTE" != "1" ]]; then
-                        echo "$0:  Not offlining $HOSTNAME:  Already offline with no note set."
+                        echo "$0:  Not offlining ${HOSTNAME_S}:  Already offline with no note set."
                         exit 0
                     fi
                     if [[ "$OLD_NOTE_LEADER" == "Reboot" && "$OLD_NOTE" == "ASAP" ]]; then
-                        echo "$0:  Not offlining $HOSTNAME:  Pending reboot."
+                        echo "$0:  Not offlining ${HOSTNAME_S}:  Pending reboot."
                         exit 0
                     fi
                     ;;
@@ -89,18 +89,18 @@ elif [[ "$NHC_RM" == "slurm" ]]; then
                     # Note: This won't happen while node is waiting to boot,
                     # because $STATUS would show MIX@ or ALLOC@, not BOOT.
                     # See src/common/slurm_protocol_defs.c-->node_state_string()
-                    SHOW_NODE_OUTPUT="$($SLURM_SCONTROL show node $HOSTNAME)"
+                    SHOW_NODE_OUTPUT="$($SLURM_SCONTROL show node ${HOSTNAME_S})"
                     if [[ $SHOW_NODE_OUTPUT == *"State=REBOOT"* ]]; then
-                        MSG="Temporarily offlining $HOSTNAME after reboot until NHC can online it"
+                        MSG="Temporarily offlining ${HOSTNAME_S} after reboot until NHC can online it"
                         echo "$0:  $MSG"
-                        $SLURM_SCONTROL update State=DRAIN NodeName=$HOSTNAME Reason="$LEADER $MSG"
+                        $SLURM_SCONTROL update State=DRAIN NodeName=${HOSTNAME_S} Reason="$LEADER $MSG"
                         exit 0
                     fi
 
                     # If `Reboot ASAP` has been cleared, then the node is
                     # already set to stay in DRAIN until NHC onlines it, so exit
                     if [[ "$OLD_NOTE_LEADER" != "Reboot" && "$OLD_NOTE" != "ASAP" ]]; then
-                        echo "$0:  $HOSTNAME already set to remain offline after reboot until NHC onlines it"
+                        echo "$0:  ${HOSTNAME_S} already set to remain offline after reboot until NHC onlines it"
                         exit 0
                     fi
                     ;;
@@ -126,13 +126,13 @@ elif [[ "$NHC_RM" == "slurm" ]]; then
                 LEADER="$OLD_NOTE_LEADER"
                 NOTE="$OLD_NOTE"
             fi
-            echo "$0:  Marking $STATUS $HOSTNAME offline:  $LEADER $NOTE"
-            exec $SLURM_SCONTROL $SLURM_SC_OFFLINE_ARGS NodeName=$HOSTNAME Reason="$LEADER $NOTE"
+            echo "$0:  Marking $STATUS ${HOSTNAME_S} offline:  $LEADER $NOTE"
+            exec $SLURM_SCONTROL $SLURM_SC_OFFLINE_ARGS NodeName=${HOSTNAME_S} Reason="$LEADER $NOTE"
             ;;
         down*)
-            echo "$0:  Not changing state of down node $HOSTNAME."
+            echo "$0:  Not changing state of down node ${HOSTNAME_S}."
             ;;
-        *)  echo "$0:  Not sure how to handle node state \"$STATUS\" on $HOSTNAME" ;;
+        *)  echo "$0:  Not sure how to handle node state \"$STATUS\" on ${HOSTNAME_S}" ;;
     esac
 
 ### IBM Platform LSF
