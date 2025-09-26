@@ -4,18 +4,19 @@ SUBDIRS = bench test
 
 helperdir = $(libexecdir)/nhc
 confdir = $(sysconfdir)/nhc
+libnhcdir = /usr/lib/nhc
 logrotatedir = $(sysconfdir)/logrotate.d
 
 dist_sbin_SCRIPTS = nhc nhc-genconf nhc-wrapper
 dist_conf_DATA = nhc.conf
 dist_helper_SCRIPTS = helpers/node-mark-online helpers/node-mark-offline
 
-nobase_dist_conf_DATA = scripts/lbnl_cmd.nhc scripts/common.nhc		\
-                        scripts/lbnl_dmi.nhc scripts/lbnl_file.nhc	\
-                        scripts/lbnl_fs.nhc  scripts/lbnl_hw.nhc	\
-                        scripts/lbnl_job.nhc scripts/lbnl_moab.nhc	\
-                        scripts/lbnl_net.nhc scripts/lbnl_nv.nhc	\
-                        scripts/lbnl_ps.nhc  scripts/csc_nvidia_smi.nhc
+dist_libnhc_DATA = scripts/lbnl_cmd.nhc scripts/common.nhc	\
+                   scripts/lbnl_dmi.nhc scripts/lbnl_file.nhc	\
+                   scripts/lbnl_fs.nhc  scripts/lbnl_hw.nhc	\
+                   scripts/lbnl_job.nhc scripts/lbnl_moab.nhc	\
+                   scripts/lbnl_net.nhc scripts/lbnl_nv.nhc	\
+                   scripts/lbnl_ps.nhc  scripts/csc_nvidia_smi.nhc
 
 MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure install-sh missing
 DISTCLEANFILES =
