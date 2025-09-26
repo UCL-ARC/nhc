@@ -6,21 +6,12 @@
 
 Upstream provides RPMs and SRPMs only for releases, which are old by now.
 So we need to be able to build RPMs from the `dev` or our own `ucl` branch.
-The following is convoluted, but works without messing with the `.spec` file.
 
 ```
-# Note that the checkout directory must be named `lbnl-nhc-1.5`!
-# If necessary, rename it.
-cd lbnl-nhc-1.5
-# Create the spec file.
+cd nhc
 ./autogen.sh
-# Create tarball in the right place, because the spec file insists
-# on building from a tarball.
-cd ..
-mkdir -p $HOME/rpmbuild/SOURCES
-tar czvf $HOME/rpmbuild/SOURCES/lbnl-nhc-1.5.tar.gz lbnl-nhc-1.5
-# Now we can build. Package rpm-build must be installed.
-rpmbuild -ba lbnl-nhc.spec
+make dist
+rpmbuild -ta lbnl-nhc-1.5.tar.gz
 # Check the created RPMs.
 ls -lR $HOME/rpmbuild/RPMS
 ```
