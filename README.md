@@ -153,7 +153,7 @@ To install NHC from the source tarball linked above, untar it, change into the d
 
 > **NOTE:**  You can also fork and/or clone the whole NHC project on GitHub; this is recommended if you plan to contribute to NHC development as this makes it very easy to submit your changes upstream using GitHub Pull Requests!  Visit the [NHC Project Page](https://github.com/mej/nhc/) to Watch, Star, or Fork the project!
 
-Whether you use RPMs or install from source, the script will be installed as `/usr/sbin/nhc`, the configuration file and check scripts in `/etc/nhc`, and the helper scripts in `/usr/libexec/nhc`.  Once you've completed one of the 3 installation methods above on your compute nodes' root filesystem image, you can proceed with the configuration.
+Whether you use RPMs or install from source, the script will be installed as `/usr/sbin/nhc`, the configuration file in `/etc/nhc`, the system check scripts in `/usr/lib/nhc`, and the helper scripts in `/usr/libexec/nhc`.  Once you've completed one of the 3 installation methods above on your compute nodes' root filesystem image, you can proceed with the configuration.
 
 
 ### Sample Configuration
@@ -497,7 +497,7 @@ Examples:
 
 Configuration lines contain a **target** specifier, the separator string `||`, and the **check** command.  The target specifies which hosts should execute the check; only nodes whose hostname matches the given target will execute the check on that line.  All other nodes will ignore it and proceed to the next check.
 
-A check is simply a shell command.  All NHC checks are bash functions defined in the various included files in `/etc/nhc/scripts/*.nhc`, but in actuality any valid shell command that properly returns success or failure will work.  This documentation and all examples will only reference bash function checks.  Each check can take zero or more arguments and is executed exactly as seen in the configuration.
+A check is simply a shell command.  All NHC checks are bash functions defined in the various included files in `/usr/lib/nhc/*.nhc` and `/etc/nhc/scripts/*.nhc`, but in actuality any valid shell command that properly returns success or failure will work.  This documentation and all examples will only reference bash function checks.  Each check can take zero or more arguments and is executed exactly as seen in the configuration.
 
 As of version 1.2, configuration variables may also be set in the config file with the same syntax.  This makes it easy to alter specific settings, commands, etc. globally or for individual hosts/hostgroups!
 
@@ -600,6 +600,7 @@ The table below provides a list of the configuration variables which may be used
 | SLURM_SINFO | `sinfo` | Command to use for Slurm's `sinfo` (may include path) |
 | STAT_CMD | `/usr/bin/stat` | Command to use to `stat()` files |
 | STAT_FMT_ARGS | `-c` | Parameter to introduce format string to `stat` command |
+| *SYSINCDIR | `/usr/lib/nhc` | Directory for NHC check scripts (system) |
 | *TIMEOUT | `30` | Watchdog timer (in seconds) |
 | VERBOSE | `0` | Set to `1` to display each check line before it's executed |
 
@@ -1305,7 +1306,7 @@ While technically a "check" can be anything the `nhc` driver script can execute,
 
 ### Writing Checks
 
-The first decision to be made is what to name your check file.  As mentioned above, check files live (by default; see the `$INCDIR` and `$CONFDIR` [configuration variables](#supported-variables)) in `/etc/nhc/scripts/` and are named _`something`_`.nhc`<sup>[2](#footnotes)</sup>.  A file containing utility and general-purpose functions called `common.nhc` can be found here.  All other files placed here by the upstream package follow the naming convention _`siteid_class`_`.nhc` (e.g., the NHC project's file containing hardware checks is named `lbnl_hw.nhc`).  Your _`siteid`_ can be anything you'd like (other than `lbnl`, obviously) but should be recognizable.  The _`class`_ should refer to the subsystem or conceptual group of things you'll be monitoring.
+The first decision to be made is what to name your check file.  As mentioned above, custom check files live (by default; see the `$INCDIR` and `$CONFDIR` [configuration variables](#supported-variables)) in `/etc/nhc/scripts/` and are named _`something`_`.nhc`<sup>[2](#footnotes)</sup>.  A file containing utility and general-purpose functions called `common.nhc` can be found in `/usr/lib/nhc`.  All other files placed there by the upstream package follow the naming convention _`siteid_class`_`.nhc` (e.g., the NHC project's file containing hardware checks is named `lbnl_hw.nhc`).  Your _`siteid`_ can be anything you'd like (other than `lbnl`, obviously) but should be recognizable.  The _`class`_ should refer to the subsystem or conceptual group of things you'll be monitoring.
 
 For purposes of this example, we'll pretend we're from John Sheridan University, using site abbreviation "`jsu`," and we want to write checks for our "`stuff`."
 

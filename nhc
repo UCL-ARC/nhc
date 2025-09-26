@@ -449,20 +449,20 @@ function nhcmain_version_info() {
         fi
         echo
 
-        printf '%20s  Host %s (%s)  RM "%s"  LIBEXECDIR="%s" SYSCONFIGDIR="%s"  STATEDIR="%s"\n' \
-                "System Setup:" "$HOSTNAME_S" "$HOSTNAME" "$NHC_RM" "$LIBEXECDIR" "$SYSCONFIGDIR" "$STATEDIR"
-        printf '%20s  CONFDIR="%s" HELPERDIR="%s" INCDIR="%s" LOGDIR="%s" RUNDIR="%s"\n' \
-                "Package Setup:" "$CONFDIR" "$HELPERDIR" "$INCDIR" "$LOGDIR" "$RUNDIR"
+        printf '%20s  Host %s (%s)  RM "%s"  LIBDIR="%s" LIBEXECDIR="%s" SYSCONFIGDIR="%s"  STATEDIR="%s"\n' \
+                "System Setup:" "$HOSTNAME_S" "$HOSTNAME" "$NHC_RM" "$LIBDIR" "$LIBEXECDIR" "$SYSCONFIGDIR" "$STATEDIR"
+        printf '%20s  CONFDIR="%s" HELPERDIR="%s" SYSINCDIR="%s" INCDIR="%s" LOGDIR="%s" RUNDIR="%s"\n' \
+                "Package Setup:" "$CONFDIR" "$HELPERDIR" "$SYSINCDIR" "$INCDIR" "$LOGDIR" "$RUNDIR"
 
         #printf '%20s  (NHC_CFG_)GLOBAL="%s" SYSCONFIGDIR="%s" LIBEXECDIR="%s" CONFDIR="%s" INCDIR="%s" HELPERDIR="%s"\n' \
         #        "NHC_CFG_* Overrides:" "${NHC_CFG_GLOBAL-<unset>}" "${NHC_CFG_SYSCONFIGDIR-<unset>}" "${NHC_CFG_LIBEXECDIR-<unset>}" \
         #        "${NHC_CFG_CONFDIR-<unset>}" "${NHC_CFG_INCDIR-<unset>}" "${NHC_CFG_HELPERDIR-<unset>}"
-        printf -v S ' %s' 'NHC_CFG_'{SYSCONFIG,LIBEXEC,STATE}'DIR="%s"'
+        printf -v S ' %s' 'NHC_CFG_'{SYSCONFIG,LIB,LIBEXEC,STATE}'DIR="%s"'
         printf '%20s  NHC_CFG_GLOBAL="%s"'"$S"'\n' \
                 "Init Env Overrides:" "${NHC_CFG_GLOBAL-<unset>}" "${NHC_CFG_SYSCONFIGDIR-<unset>}" \
-                "${NHC_CFG_LIBEXECDIR-<unset>}" "${NHC_CFG_STATEDIR-<unset>}"
-        printf -v S ' %s' 'NHC_CFG_'{CONF,INC,HELPER,LOG,RUN}'DIR="%s"'
-        printf '%20s  '"${S:1}"'\n' '' "${NHC_CFG_CONFDIR-<unset>}" "${NHC_CFG_INCDIR-<unset>}" "${NHC_CFG_HELPERDIR-<unset>}" \
+                "${NHC_CFG_LIBDIR-<unset>}" "${NHC_CFG_LIBEXECDIR-<unset>}" "${NHC_CFG_STATEDIR-<unset>}"
+        printf -v S ' %s' 'NHC_CFG_'{CONF,SYSINC,INC,HELPER,LOG,RUN}'DIR="%s"'
+        printf '%20s  '"${S:1}"'\n' '' "${NHC_CFG_CONFDIR-<unset>}" "${NHC_CFG_SYSINCDIR-<unset>}" "${NHC_CFG_INCDIR-<unset>}" "${NHC_CFG_HELPERDIR-<unset>}" \
                 "${NHC_CFG_LOGDIR-<unset>}" "${NHC_CFG_RUNDIR-<unset>}"
 
         printf '%20s  Context "%s" Config "%s" TIMEOUT=%d  DEBUG=%s SILENT=%s VERBOSE=%s  Detached Mode %s%s%s\n' \
@@ -483,11 +483,11 @@ function nhcmain_version_info() {
 }
 
 function nhcmain_init_env() {
-    local _DEF_SCDIR='/etc/sysconfig' _DEF_LEXDIR='/usr/libexec' _DEF_STATEDIR='/var'
+    local _DEF_SCDIR='/etc/sysconfig' _DEF_LIBDIR='/usr/lib' _DEF_LEXDIR='/usr/libexec' _DEF_STATEDIR='/var'
     #local -a XTRADIRS=( )     ### FIXME:  Try harder? e.g., $(realpath "<other-nhc-dir>"/../{../,}lib{exec,})
     local -i RC=1
 
-    unset CONFDIR CONFFILE INCDIR HELPERDIR LOGDIR RUNDIR STATEDIR DEBUG EVAL_LINE LOGFILE RESULTFILE SILENT
+    unset CONFDIR CONFFILE SYSINCDIR INCDIR HELPERDIR LOGDIR RUNDIR STATEDIR DEBUG EVAL_LINE LOGFILE RESULTFILE SILENT
     unset TIMEOUT VERBOSE SYSLOG_CMD SYSLOG_FAC SYSLOG_IDENT SYSLOG_LEVEL SYSLOG_PRIO SYSLOG_SIZE
 
     # We already (usually) accept pre-existing values in the environment, but
@@ -508,6 +508,9 @@ function nhcmain_init_env() {
     # NHC_CFG_SYSCONFIGDIR - Override default `SYSCONFIGDIR` value (OS-dependent)
     #NHC_CFG_SYSCONFIGDIR="$HOME/.nhc/global"
     #
+    # NHC_CFG_LIBDIR - Override default `LIBDIR` value (OS-dependent)
+    #NHC_CFG_LIBDIR="$HOME/.nhc/lib"
+    #
     # NHC_CFG_LIBEXECDIR - Override default `LIBEXECDIR` value (OS-dependent)
     #NHC_CFG_LIBEXECDIR="$HOME/.nhc/libexec"
     #
@@ -519,6 +522,9 @@ function nhcmain_init_env() {
     #
     # NHC_CFG_HELPERDIR - Override default `HELPERDIR` value (`$LIBEXECDIR/nhc`)
     #NHC_CFG_HELPERDIR="$NHC_CFG_CONFDIR/helpers"
+    #
+    # NHC_CFG_SYSINCDIR - Override default `SYSINCDIR` value (`$LIBDIR/nhc`)
+    #NHC_CFG_SYSINCDIR="$NHC_CFG_CONFDIR/scripts"
     #
     # NHC_CFG_INCDIR - Override default `INCDIR` value (`$CONFDIR/scripts`)
     #NHC_CFG_INCDIR="$NHC_CFG_CONFDIR/checks"
@@ -562,6 +568,9 @@ function nhcmain_init_env() {
             INCDIR="${INCDIR-$CONFDIR/scripts}"
             SYSCONFIGDIR="${SYSCONFIGDIR-$CONFDIR/sysconfig}"
 
+            LIBDIR="${LIBDIR-$NHC_CFG_PREFIX/lib}"
+            SYSINCDIR="${SYSINCDIR-$LIBDIR/nhc}"
+
             LIBEXECDIR="${LIBEXECDIR-$NHC_CFG_PREFIX/libexec}"
             HELPERDIR="${HELPERDIR-$LIBEXECDIR/nhc}"
 
@@ -584,6 +593,15 @@ function nhcmain_init_env() {
     #if [[ ! -d "${SYSCONFIGDIR}" ]]; then
     #    mkdir -p -m 0700 "${SYSCONFIGDIR}" >&/dev/null
     #fi
+
+    pickdir '$LIBDIR' "$NHC_CFG_LIBDIR" "$LIBDIR" "${NHC_CFG_PREFIX:+$NHC_CFG_PREFIX/lib}" "$_DEF_LIBDIR" '/usr/lib'
+    if [[ -z "$LIBDIR" ]]; then
+        if (( EUID == 0 )); then
+            LIBDIR="$NHC_CFG_PREFIX$_DEF_LIBDIR"
+        else
+            LIBDIR="$HOME/.nhc/lib"
+        fi
+    fi
 
     pickdir '$LIBEXECDIR' "$NHC_CFG_LIBEXECDIR" "$LIBEXECDIR" "${NHC_CFG_PREFIX:+$NHC_CFG_PREFIX/libexec}" \
         "${NHC_CFG_PREFIX:+$NHC_CFG_PREFIX/lib}" "$_DEF_LEXDIR" '/usr/libexec' '/usr/lib'
@@ -616,6 +634,7 @@ function nhcmain_init_env() {
     pickdir '$CONFDIR'   "$NHC_CFG_CONFDIR"   "$CONFDIR"   "$NHC_CFG_PREFIX/etc/nhc" "$NHC_CFG_PREFIX/etc" '/etc/nhc' \
         || if (( EUID == 0 )); then CONFDIR='/etc/nhc'; else CONFDIR="$HOME/.nhc/etc"; fi
     pickdir '$HELPERDIR' "$NHC_CFG_HELPERDIR" "$HELPERDIR" "$LIBEXECDIR/nhc"   || HELPERDIR="$LIBEXECDIR/nhc"
+    pickdir '$SYSINCDIR' "$NHC_CFG_SYSINCDIR" "$SYSINCDIR" "$LIBDIR/nhc"       || SYSINCDIR="$LIBDIR/nhc"
     pickdir '$INCDIR'    "$NHC_CFG_INCDIR"    "$INCDIR"    "$CONFDIR/scripts"  || INCDIR="$CONFDIR/scripts"
     pickdir '$LOGDIR'    "$NHC_CFG_LOGDIR"    "$LOGDIR"    "$STATEDIR/log"     || LOGDIR="$STATEDIR/log"
     pickdir '$RUNDIR'    "$NHC_CFG_RUNDIR"    "$RUNDIR"    "$STATEDIR/run/nhc" || RUNDIR="$STATEDIR/run/nhc"
@@ -645,7 +664,7 @@ function nhcmain_init_env() {
     FAIL_CNT=0
     FORCE_SETSID=1
     NHC_FORCED_SESSION=0
-    export PATH PS4 SYSCONFIGDIR LIBEXECDIR STATEDIR CONFDIR HOSTNAME HOSTNAME_S RET LOGGER_TEXT
+    export PATH PS4 SYSCONFIGDIR LIBDIR LIBEXECDIR STATEDIR CONFDIR HOSTNAME HOSTNAME_S RET LOGGER_TEXT
     export NHC_PID NHC_START_TS NHC_WATCHDOG FAIL_CNT FORCE_SETSID NHC_FD_OUT NHC_FD_ERR
 
     # Users may override this in /etc/sysconfig/nhc.
@@ -778,6 +797,7 @@ function nhcmain_finalize_env() {
     # but will be removed in the future.  Eventually.  Maybe.
     #STATEDIR="${STATEDIR:-/var}"
     #CONFDIR="${CONFDIR:-/etc/nhc}"
+    #SYSINCDIR="${SYSINCDIR:-$LIBDIR/nhc}"
     #INCDIR="${INCDIR:-$CONFDIR/scripts}"
     #HELPERDIR="${HELPERDIR:-$LIBEXECDIR/nhc}"
     #LOGDIR="${LOGDIR:-$STATEDIR/log}"
@@ -1067,14 +1087,14 @@ function nhcmain_load_scripts() {
     # Load all include scripts.
     dbg "Loading scripts from $INCDIR..."
     set +f
-    NHC_SCRIPTS=( $INCDIR/*.nhc )
+    NHC_SCRIPTS=( $SYSINCDIR/*.nhc $INCDIR/*.nhc )
     set -f
     for SCRIPT in "${NHC_SCRIPTS[@]}" ; do
 	if [[ -e "$SCRIPT" ]]; then
             dbg "Loading ${SCRIPT/#*\/}"
             . $SCRIPT
         else
-            dbg "No scripts found in $INCDIR"
+            dbg "No scripts found in $SYSINCDIR and $INCDIR"
         fi
     done
 }
